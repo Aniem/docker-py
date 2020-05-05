@@ -102,7 +102,7 @@ class APIClient(
     def __init__(self, base_url=None, version=None,
                  timeout=DEFAULT_TIMEOUT_SECONDS, tls=False,
                  user_agent=DEFAULT_USER_AGENT, num_pools=None,
-                 credstore_env=None):
+                 credstore_env=None, *args, **kwargs):
         super(APIClient, self).__init__()
 
         if tls and not base_url:
@@ -163,7 +163,7 @@ class APIClient(
         elif base_url.startswith('ssh://'):
             try:
                 self._custom_adapter = SSHHTTPAdapter(
-                    base_url, timeout, pool_connections=num_pools
+                    base_url, timeout, pool_connections=num_pools, *args, **kwargs
                 )
             except NameError:
                 raise DockerException(

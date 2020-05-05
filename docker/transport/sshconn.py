@@ -1,4 +1,5 @@
 import paramiko
+import io
 import requests.adapters
 import six
 import logging
@@ -78,8 +79,9 @@ class SSHHTTPAdapter(BaseHTTPAdapter):
     ]
 
     def __init__(self, base_url, timeout=60,
-                 pool_connections=constants.DEFAULT_NUM_POOLS):
+                 pool_connections=constants.DEFAULT_NUM_POOLS, *args, **kwargs):
         logging.getLogger("paramiko").setLevel(logging.WARNING)
+            
         self.ssh_client = paramiko.SSHClient()
         base_url = six.moves.urllib_parse.urlparse(base_url)
         self.ssh_params = {
@@ -105,8 +107,12 @@ class SSHHTTPAdapter(BaseHTTPAdapter):
             if base_url.username is None and 'user' in host_config:
                 self.ssh_params['username'] = self.ssh_conf['user']
 
+        if "pkey_str" in kwargs:
+            self.ssh_params["pkey"]=paramiko.RSAKey.from_private_key(io.StringIO(kwargs.get("pkey_str")))
+        if "pkey" in kwargs:
+            self.ssh_params["pkey"]=kwargs.get("pkey")
         self.ssh_client.load_system_host_keys()
-        self.ssh_client.set_missing_host_key_policy(paramiko.WarningPolicy())
+        self.ssh_client.set_missing_host_key_policy(kwargs.get("hostKeyPolicy",paramiko.WarningPolicy()))
 
         self._connect()
         self.timeout = timeout
